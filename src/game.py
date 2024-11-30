@@ -42,14 +42,14 @@ backgrounds = [
 #Candies
 
 candies = [
-    {"name": "Candy1", "image": "candy.png"},
-    {"name": "Candy2", "image": "candy2.png"},
-    {"name": "Candy3", "image": "candy3.png"},
-    {"name": "Candy4", "image": "candy4.png"},
-    {"name": "Candy5", "image": "candy5.png"},
-    {"name": "Candy6", "image": "candy6.png"},
-    {"name": "Candy7", "image": "candy7.png"},
-    {"name": "Candy8", "image": "candy8.png"}
+    {"name": "Red", "image": "candy.png"},
+    {"name": "Purple", "image": "candy2.png"},
+    {"name": "Light Blue", "image": "candy3.png"},
+    {"name": "Green", "image": "candy4.png"},
+    {"name": "Light Blue", "image": "candy5.png"},
+    {"name": "Yellow", "image": "candy6.png"},
+    {"name": "Orange", "image": "candy7.png"},
+    {"name": "Red", "image": "candy8.png"}
 ]
 
 
@@ -62,7 +62,6 @@ dispenser_image = None
 spring_image = None
 candy_image = None
 background_image = None
-current_background = None
 
 
 def load_assets():
@@ -122,32 +121,33 @@ def draw_dispenser(screen, candies):
     spring_height = 50 + len(candies) * 5
     screen.blit(dispenser_image, (230, -100 + spring_height))
  
-    # Draw the candies in the stack
+    # The candies in the stack
     for i, candy in enumerate(candies):
         x = 430 # Candy x position
-        y = 255 - (i * 30)  # Adjust y based on stack size
+        y = 255 - (i * 30)  
         z=125
         candy_image = candy_images[candy]
-        screen.blit(candy_image, (x, y+z))  # Replace placeholder with candy image
+        screen.blit(candy_image, (x, y+z))  
         z+10
 
-    # Draw the spring (compress/stretch based on stack size)
+    
+    
     screen.blit(spring_image, (210, 300 + spring_height))
 
-    # Button dimensions and positions
+
 def draw_buttons(screen, mouse_pos):
-    """Draw interactive buttons with hover effect."""
     buttons = {
-        "Push": (50, 650, 150, 50),
-        "Pop": (250, 650, 150, 50),
-        "Peek": (450, 650, 150, 50),
-        "IsEmpty": (650, 650, 150, 50),
-        "IsFull": (850, 650, 150, 50),
-        "Quit": (50, 750, 150, 50), 
-        "Reset": (250, 750, 150, 50) 
+        "Push": (20, 100, 200, 50),
+        "Pop": (20, 170, 200, 50),
+        "Peek": (20, 240, 200, 50),
+        "IsEmpty": (20, 310, 200, 50),
+        "IsFull": (20, 380, 200, 50),
+        "Length": (20, 450, 200, 50),
+        "Reset": (20, 520, 200, 50),
+        "Quit": (20, 590, 200, 50),
     }
     for label, (x, y, w, h) in buttons.items():
-        # Check hover state
+    
         color = BUTTON_HOVER if x < mouse_pos[0] < x + w and y < mouse_pos[1] < y + h else DARK_BLUE
         pygame.draw.rect(screen, color, (x, y, w, h), border_radius=10)
         pygame.draw.rect(screen, BLACK, (x, y, w, h), width=2, border_radius=10)
@@ -156,17 +156,26 @@ def draw_buttons(screen, mouse_pos):
         text_rect = text.get_rect(center=(x + w // 2, y + h // 2))
         screen.blit(text, text_rect)
 
+def draw_horizontal_bar(screen):
+    """Draw a horizontal bar at the bottom of the screen."""
+    bar_height = 100
+    bar_color = (0, 0, 0) 
+    pygame.draw.rect(screen, bar_color, (0, SCREEN_HEIGHT - bar_height, SCREEN_WIDTH, bar_height))
+
+    # Add text
+    # text = FONT.render("Candy Dispenser Game", True, WHITE)
+    # screen.blit(text, (20, SCREEN_HEIGHT - bar_height + 10))
 def display_message(screen, message, color=WHITE):
     """Display a temporary message prominently on the screen."""
-    # Render the message
+    
     msg = FONT.render(message, True, color)
     msg_rect = msg.get_rect(center=(SCREEN_WIDTH // 2, 50))
 
-    # Draw a semi-transparent rectangle behind the message
+    
     pygame.draw.rect(screen, BLACK, msg_rect.inflate(20, 10), border_radius=10)
     pygame.draw.rect(screen, GRAY, msg_rect.inflate(20, 10), border_radius=10, width=2)
 
-    # Blit the message
+    
     screen.blit(msg, msg_rect)
 
 
@@ -189,102 +198,125 @@ def main():
         mouse_pos = pygame.mouse.get_pos()
         screen.fill(WHITE)
 
-        # Draw background
+        # The background 
         draw_background(screen)
+        draw_horizontal_bar(screen)
+        
+        
 
-        # Handle events
+        # Events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
+                
             # Handle button clicks
             if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = mouse_pos
-                if 50 < x < 200 and 650 < y < 700:  # Push button
-                     # Randomly choose a candy from the list
-                    selected_candy = random.choice(candies)
-                    candy_name = selected_candy["name"]
-                    candy_image = candy_images[candy_name]
-                    # Push candy onto stack
-                    if candy_stack.push(candy_name):  # Push the candy name (not image)
-                        PUSH_SOUND.play()
-                        feedback_message = f"{candy_name} pushed!"
-                        feedback_color = GREEN
-                    else:
-                        ERROR_SOUND.play()
-                        feedback_message = "Stack is full!"
-                        feedback_color = RED
-                        feedback_timer = pygame.time.get_ticks()  # Reset feedback time                    
-      
-                elif 250 < x < 400 and 650 < y < 700:  # Pop button
-                    if candy_stack.pop():
-                        POP_SOUND.play()
-                        feedback_message = "Candy popped!"
-                        feedback_color = GREEN
-                    else:
-                        ERROR_SOUND.play()
-                        feedback_message = "Stack is empty!"
-                        feedback_color = RED
-                    feedback_timer = pygame.time.get_ticks()  # Reset feedback timer
-
-                elif 450 < x < 600 and 650 < y < 700:  # Peek button
-                    candy = candy_stack.peek()
-                    
-                    if candy:
+              x, y = pygame.mouse.get_pos()
+    
+              if 20 < x < 220 and 100 < y < 150:  # Push button
+                  selected_candy = random.choice(candies)
+                  if candy_stack.push(selected_candy["name"]):  # Add only the name
                        BUTTON_CLICK_SOUND.play()
-                       feedback_message = f"Top candy:{candy}"
-                       feedback_color = BLUE
-                    else:
+                       feedback_message = f"Pushed {selected_candy['name']}!"
+                       feedback_color = GREEN
+                       feedback_timer = pygame.time.get_ticks()
+                  else:
+                       ERROR_SOUND.play()
+                       feedback_message = "Stack is full!"
+                       feedback_color = RED
+                       feedback_timer = pygame.time.get_ticks()
+
+              elif 20 < x < 220 and 170 < y < 220:  # Pop button
+                   if candy_stack.pop():
+                      POP_SOUND.play()
+                      feedback_message = "Candy popped!"
+                      feedback_color = GREEN
+                      feedback_timer = pygame.time.get_ticks()
+                   else:
                       ERROR_SOUND.play()
                       feedback_message = "Stack is empty!"
                       feedback_color = RED
-                    feedback_timer = pygame.time.get_ticks()
+                      feedback_timer = pygame.time.get_ticks()
 
-                elif 650 < x < 750 and 650 < y < 700:  # IsEmpty button
-                    if candy_stack.is_empty():
+
+              elif 20 < x < 220 and 240 < y < 290:  # Peek button
+                   top_candy = candy_stack.peek()
+                   if top_candy:
+                     BUTTON_CLICK_SOUND.play()
+                     feedback_message = f"Top candy: {top_candy}"
+                     feedback_color = BLUE
+                     feedback_timer = pygame.time.get_ticks()
+
+                   else:
+                     ERROR_SOUND.play()
+                     feedback_message = "Stack is empty!"
+                     feedback_color = RED
+                     feedback_timer = pygame.time.get_ticks()
+
+
+              elif 20 < x < 220 and 310 < y < 360:  # IsEmpty button
+                   if candy_stack.is_empty():
                       BUTTON_CLICK_SOUND.play()
-                      feedback_message = "Yes, the stack is empty!"
+                      feedback_message = "Stack is empty!"
                       feedback_color = GREEN
-                    else:
-                      BUTTON_CLICK_SOUND.play()
-                      feedback_message = "No, the stack is not empty!"
-                      feedback_color = BLUE
-                    feedback_timer = pygame.time.get_ticks()
-                elif 850 < x < 950 and 650 < y < 700:  # IsFull button
-                    if candy_stack.is_full():
-                       BUTTON_CLICK_SOUND.play()
-                       feedback_message = "Stack is full!"
-                       feedback_color = GREEN
-                    else:
-                       ERROR_SOUND.play()
-                       feedback_message = "Stack is not full!"
-                       feedback_color = BLUE
-                    feedback_timer = pygame.time.get_ticks()
+                      feedback_timer = pygame.time.get_ticks()
 
-                elif 50 < x < 200 and 750 < y < 800: 
-                    running = False  
+                   else:
+                     ERROR_SOUND.play()
+                     feedback_message = "Stack is not empty!"
+                     feedback_color = BLUE
+                     feedback_timer = pygame.time.get_ticks()
 
-                elif 250 < x < 400 and 750 < y < 800: 
-                    candy_stack.clear() 
-                    feedback_message = "Game reset!"
+
+              elif 20 < x < 220 and 380 < y < 430:# IsFull button
+                if candy_stack.is_full():
+                     BUTTON_CLICK_SOUND.play()
+                     feedback_message = "Stack is full!"
+                     feedback_color = GREEN
+                     feedback_timer = pygame.time.get_ticks()
+
+                else:
+                    ERROR_SOUND.play()
+                    feedback_message = "Stack is not full!"
                     feedback_color = BLUE
+                    feedback_timer = pygame.time.get_ticks()
+
+
+              elif 20 < x < 220 and 450 < y < 500:  # Length button
                     BUTTON_CLICK_SOUND.play()
-                    feedback_timer = pygame.time.get_ticks() 
+                    feedback_message = f"Stack length: {len(candy_stack.stack)}"
+                    feedback_color = WHITE
+                    feedback_timer = pygame.time.get_ticks()
 
-                feedback_timer = pygame.time.get_ticks() 
 
-        # Draw elements
+              elif 20 < x < 220 and 520 < y < 570:  # Reset button
+                   candy_stack.clear()
+                   BUTTON_CLICK_SOUND.play()
+                   feedback_message = "Stack reset!"
+                   feedback_color = GREEN
+                   feedback_timer = pygame.time.get_ticks()
+
+
+              elif 20 < x < 220 and 590 < y < 640:  # Quit button
+                   BUTTON_CLICK_SOUND.play()
+                   running = False
+
+                   # Reset feedback timer
+                   feedback_timer = pygame.time.get_ticks()
+
+        
         draw_dispenser(screen, candy_stack.stack)
         draw_buttons(screen, mouse_pos)
+        draw_horizontal_bar(screen)
 
-       # Change background every 10 seconds
-        if pygame.time.get_ticks() - background_change_timer > 10000:  # Change every 10 seconds
-            if background_images:  # Ensure background images are loaded
-                current_background = random.choice(list(background_images.values()))  # Select a new random background
-            background_change_timer = pygame.time.get_ticks()  # Reset the timer
+       
+        if pygame.time.get_ticks() - background_change_timer > 10000:  
+            if background_images:  
+                current_background = random.choice(list(background_images.values())) 
+            background_change_timer = pygame.time.get_ticks()  
 
         # Feedback message
-        if pygame.time.get_ticks() - feedback_timer < 600:
+        if pygame.time.get_ticks() - feedback_timer < 1000:
             display_message(screen, feedback_message, feedback_color)
 
         pygame.display.flip()
